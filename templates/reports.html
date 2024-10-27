@@ -1,0 +1,50 @@
+<!-- templates/reports.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Generate Reports</h1>
+<form method="POST">
+    <div class="mb-3">
+        <label for="report_type" class="form-label">Report Type</label>
+        <select name="report_type" id="report_type" class="form-select">
+            <option value="">Select Report Type</option>
+            <option value="Monthly">Monthly</option>
+            <option value="Quarterly">Quarterly</option>
+            <option value="Yearly">Yearly</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="start_date" class="form-label">Start Date</label>
+        <input type="date" name="start_date" id="start_date" class="form-control">
+    </div>
+    <div class="mb-3">
+        <label for="end_date" class="form-label">End Date</label>
+        <input type="date" name="end_date" id="end_date" class="form-control">
+    </div>
+    <button type="submit" class="btn btn-primary btn-custom">Generate Report</button>
+</form>
+
+{% if transactions %}
+    <h2 class="mt-5">Transactions from {{ start_date }} to {{ end_date }}</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Category</th>
+                <th>Amount ($)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for txn in transactions %}
+            <tr>
+                <td>{{ txn.date.strftime('%Y-%m-%d') }}</td>
+                <td>{{ txn.description }}</td>
+                <td>{{ txn.category.name }}</td>
+                <td>{{ "%.2f"|format(txn.amount) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+{% endblock %}

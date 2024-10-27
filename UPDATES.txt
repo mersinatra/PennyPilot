@@ -1,4 +1,8 @@
-i want the cards on the dashboard to slightly enlarge when hovered over for a better user experience.
-i also want an intuitive "Add Transaction" icon like a plus or something on the dashboard (maybe even replace Add Transaction from the nav menu with Transactions - which shows detailed summaries transactions as well options to Add/remove/edit transactions. make add_transactions.html a pop up window instead of opening a whole new page)
-make the expenses by category section smaller (the graph thingy is huge and takes up the entire page and then some.)
-  
+i also want an intuitive "Add Transaction" icon like a plus or something on the dashboard, keep in mind modern design trends. 
+ 
+Real-Time Feedback: Provide immediate feedback on user actions (e.g., loading indicators, success messages).
+Dynamic Charts: Enhance charts with interactivity (e.g., tooltips, clickable segments) using Chart.js features.
+Category Trends: Analyze spending trends over time within each category.
+Scrolling animation: make things dynamically load when scrolling (except the main 3 cards: total income, total expenses and balance)
+Windows: Make add transaction, add budget and import data templates just pop up windows instead of loading a whole new pages
+Toast Notifications: Enhance the showToast function to manage multiple toasts gracefully and prevent clutter. 

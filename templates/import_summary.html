@@ -1,0 +1,36 @@
+<!-- templates/import_summary.html -->
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white border-bottom-0">
+                <h3 class="mb-0">Import Summary</h3>
+            </div>
+            <div class="card-body">
+                <p class="lead">Data Import Completed</p>
+                <ul class="list-group mb-3">
+                    <li class="list-group-item">Successful Imports: <strong>{{ success_count }}</strong></li>
+                    <li class="list-group-item">Failed Imports: <strong>{{ failure_count }}</strong></li>
+                </ul>
+                {% if failure_count > 0 %}
+                    <h5>Failure Details:</h5>
+                    <ul class="list-group">
+                        {% for failure in failure_details %}
+                            <li class="list-group-item">
+                                {% if failure.row %}
+                                    <strong>Row:</strong> {{ failure.row }}<br>
+                                {% elif failure.item %}
+                                    <strong>Item:</strong> {{ failure.item }}<br>
+                                {% endif %}
+                                <strong>Error:</strong> {{ failure.error }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                <a href="{{ url_for('dashboard') }}" class="btn btn-primary mt-4">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

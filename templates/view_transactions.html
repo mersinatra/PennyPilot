@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">Transactions for {{ month }}</h2>
+    <!-- Button to Open Add Transaction Modal -->
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTransactionModal">
+        Add Transaction
+    </button>
+</div>
+
+{% if transactions %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Type</th>
+                    <th>Recurring</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                <tr>
+                    <td>{{ transaction.date.strftime('%Y-%m-%d') }}</td>
+                    <td>{{ transaction.category }}</td>
+                    <td>{{ transaction.description }}</td>
+                    <td>
+                        {% if transaction.type == 'Income' %}
+                            <span class="text-success">+${{ "%.2f"|format(transaction.amount) }}</span>
+                        {% else %}
+                            <span class="text-danger">-${{ "%.2f"|format(transaction.amount) }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ transaction.type }}</td>
+                    <td>
+                        {% if transaction.recurring %}
+                            <span class="badge bg-success">Yes</span>
+                        {% else %}
+                            <span class="badge bg-secondary">No</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <!-- Button to Open Edit Transaction Modal -->
+                        <button type="button" class="btn btn-sm btn-outline-primary edit-transaction-btn" 
+                                data-bs-toggle="modal" data-bs-target="#editTransactionModal"
+                                data-id="{{ transaction.id }}"
+                                data-date="{{ transaction.date.strftime('%Y-%m-%d') }}"
+                                data-category="{{ transaction.category_id }}"
+                                data-description="{{ transaction.description }}"
+                                data-amount="{{ transaction.amount }}"
+                                data-type="{{ transaction.type }}"
+                                data-recurring="{{ 'true' if transaction.recurring else 'false' }}">
+                            Edit
+                        </button>
+                        <form action="{{ url_for('delete_transaction', transaction_id=transaction.id) }}" method="POST" class="d-inline" onsubmit="return confirmDelete();">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="fas fa-trash-alt"></i> Delete
+                            </button>
+                        </form>                        
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        No transactions found for this month. <a href="#" class="alert-link" data-bs-toggle="modal" data-bs-target="#addTransactionModal">Add a new transaction</a>.
+    </div>
+{% endif %}
+
+<!-- Add Transaction Modal -->
+<div class="modal fade" id="addTransactionModal" tabindex="-1" aria-labelledby="addTransactionModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="addTransactionModalLabel">Add New Transaction</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="POST" action="{{ url_for('add_transaction') }}">
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+                {{ form.date.label(class="form-label fw-bold") }}
+                {{ form.date(class="form-control", type="date") }}
+                {% for error in form.date.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ form.category.label(class="form-label fw-bold") }}
+                {{ form.category(class="form-select") }}
+                {% for error in form.category.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ form.description.label(class="form-label fw-bold") }}
+                {{ form.description(class="form-control", placeholder="Enter description") }}
+                {% for error in form.description.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ form.amount.label(class="form-label fw-bold") }}
+                {{ form.amount(class="form-control", placeholder="Enter amount") }}
+                {% for error in form.amount.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="mb-3 form-check">
+                {{ form.recurring(class="form-check-input", id="recurringCheck") }}
+                {{ form.recurring.label(class="form-check-label", for="recurringCheck") }}
+                {% for error in form.recurring.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg">{{ form.submit.label.text }}</button>
+            </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Transaction Modal -->
+<div class="modal fade" id="editTransactionModal" tabindex="-1" aria-labelledby="editTransactionModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="editTransactionModalLabel">Edit Transaction</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editTransactionForm" method="POST" action="">
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+                {{ form.date.label(class="form-label fw-bold") }}
+                {{ form.date(class="form-control", type="date") }}
+                {% for error in form.date.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ form.category.label(class="form-label fw-bold") }}
+                {{ form.category(class="form-select") }}
+                {% for error in form.category.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ form.description.label(class="form-label fw-bold") }}
+                {{ form.description(class="form-control", placeholder="Enter description") }}
+                {% for error in form.description.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ form.amount.label(class="form-label fw-bold") }}
+                {{ form.amount(class="form-control", placeholder="Enter amount") }}
+                {% for error in form.amount.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="mb-3 form-check">
+                {{ form.recurring(class="form-check-input", id="editRecurringCheck") }}
+                {{ form.recurring.label(class="form-check-label", for="editRecurringCheck") }}
+                {% for error in form.recurring.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg">{{ form.submit.label.text }}</button>
+                <button type="button" class="btn btn-secondary btn-lg mt-2" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    // Function to confirm deletion
+    function confirmDelete() {
+        return confirm('Are you sure you want to delete this transaction? This action cannot be undone.');
+    }
+
+    // Handle Edit Transaction Modal
+    var editTransactionModal = document.getElementById('editTransactionModal');
+    editTransactionModal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        var transactionId = button.getAttribute('data-id');
+        var date = button.getAttribute('data-date');
+        var category = button.getAttribute('data-category');
+        var description = button.getAttribute('data-description');
+        var amount = button.getAttribute('data-amount');
+        var type = button.getAttribute('data-type');
+        var recurring = button.getAttribute('data-recurring') === 'true';
+
+        // Update the form action
+        var form = document.getElementById('editTransactionForm');
+        form.action = '/edit_transaction/' + transactionId;
+
+        // Populate the form fields
+        form.querySelector('input[name="date"]').value = date;
+        form.querySelector('select[name="category"]').value = category;
+        form.querySelector('input[name="description"]').value = description;
+        form.querySelector('input[name="amount"]').value = amount;
+        form.querySelector('select[name="type"]').value = type;
+        form.querySelector('input[name="recurring"]').checked = recurring;
+    });
+</script>
+
+{% endblock %}

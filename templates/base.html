@@ -3,45 +3,90 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PennyPilot – Take Control of Every Cent</title>
+    
+    <!-- Existing Stylesheets -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    
     <!-- Updated to Bootstrap 5 for modern components -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    
     <!-- Google Fonts for a clean look -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- FullCalendar CSS -->
-    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css' rel='stylesheet' />
-    <!-- FullCalendar JS -->
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js'></script>
+    
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <!-- Favicon -->
     <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
-        <div class="container">
-            <a class="navbar-brand fw-bold text-dark" href="{{ url_for('dashboard') }}">PennyPilot</a>
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold text-dark" href="{{ url_for('dashboard') }}">
+                <i class="fas fa-rocket me-2"></i>PennyPilot
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                 <ul class="navbar-nav">
+                    <!-- Dashboard -->
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">Dashboard</a>
+                        <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" 
+                           href="{{ url_for('dashboard') }}">
+                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                        </a>
                     </li>
+                    
+                    <!-- Transactions -->
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'add_transaction' %}active{% endif %}" href="{{ url_for('add_transaction') }}">Add Transaction</a>
+                        <a class="nav-link {% if request.endpoint == 'view_transactions' %}active{% endif %}" 
+                           href="{{ url_for('view_transactions') }}">
+                            <i class="fas fa-list me-1"></i>Transactions
+                        </a>
                     </li>
+                    
+                    <!-- Budgets -->
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'view_budgets' %}active{% endif %}" href="{{ url_for('view_budgets') }}">Budgets</a>
+                        <a class="nav-link {% if request.endpoint == 'view_budgets' %}active{% endif %}" 
+                           href="{{ url_for('view_budgets') }}">
+                            <i class="fas fa-wallet me-1"></i>Budgets
+                        </a>
                     </li>
+                    
+                    <!-- Reports -->
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'import_data' %}active{% endif %}" href="{{ url_for('import_data') }}">Import/Export</a>
+                        <a class="nav-link {% if request.endpoint == 'reports' %}active{% endif %}" 
+                           href="{{ url_for('reports') }}">
+                            <i class="fas fa-file-alt me-1"></i>Reports
+                        </a>
                     </li>
-                    <!-- Removed Recurring Transactions Navigation Link -->
+                    
+                    <!-- Category Trends -->
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'category_trends' %}active{% endif %}" 
+                           href="{{ url_for('category_trends') }}">
+                            <i class="fas fa-chart-pie me-1"></i>Category Trends
+                        </a>
+                    </li>
+                    
+                    <!-- Import/Export -->
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'import_data' %}active{% endif %}" 
+                           href="{{ url_for('import_data') }}">
+                            <i class="fas fa-file-import me-1"></i>Import Data
+                        </a>
+                    </li>
+                    
+                    <!-- Theme Toggle -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="theme-toggle">
+                            <i class="fas fa-moon me-1"></i>Toggle Theme
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -59,8 +104,37 @@
         {% endwith %}
         {% block content %}{% endblock %}
     </div>
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    
+    <!-- Block scripts STARTS here -->
+    {% block scripts %}
+        <!-- Bootstrap 5 JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+        
+        <!-- Chart.js -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        
+        <!-- Your Custom Scripts -->
+        <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+
+        <script src="{{ url_for('static', filename='js/index.global.min.js') }}"></script>
+        
+        <!-- Theme Toggle Script -->
+        <script>
+            document.getElementById('theme-toggle').addEventListener('click', function(e) {
+                e.preventDefault();
+                document.body.classList.toggle('dark-theme');
+                // Optionally, toggle icon
+                const icon = this.querySelector('i');
+                if (document.body.classList.contains('dark-theme')) {
+                    icon.classList.remove('fa-moon');
+                    icon.classList.add('fa-sun');
+                } else {
+                    icon.classList.remove('fa-sun');
+                    icon.classList.add('fa-moon');
+                }
+            });
+        </script>
+    {% endblock %}
+    <!-- Block scripts ends here -->
 </body>
 </html>

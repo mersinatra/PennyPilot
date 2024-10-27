@@ -1,37 +1,42 @@
-// static/js/scripts.js
+    
+ 
+    // Additional Toggle for All Modals (Optional)
+    var recurringCheckboxes = document.querySelectorAll('.is-recurring-checkbox');
+    recurringCheckboxes.forEach(function(checkbox) {
+        var recurringFields = checkbox.closest('form').querySelector('.recurring-fields');
 
-// Confirm before deleting a transaction or budget
-function confirmDelete() {
-    return confirm('Are you sure you want to delete this item? This action cannot be undone.');
-}
+        function toggleRecurringFields() {
+            if (checkbox.checked) {
+                recurringFields.style.display = 'block';
+            } else {
+                recurringFields.style.display = 'none';
+            }
+        }
 
-function showToast(message, type) {
-    let toastHTML = `
-    <div class="toast align-items-center text-bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex">
-            <div class="toast-body">
-                ${message}
-            </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-        </div>
-    </div>`;
-    document.getElementById('toast-container').innerHTML += toastHTML;
-    let toastElement = document.querySelector('#toast-container .toast:last-child');
-    let toast = new bootstrap.Toast(toastElement);
-    toast.show();
-}
-
-// static/js/scripts.js
-
-// Confirm before deleting a transaction or budget
-function confirmDelete() {
-    return confirm('Are you sure you want to delete this item? This action cannot be undone.');
-}
-
-// Initialize Bootstrap tooltips globally
-document.addEventListener('DOMContentLoaded', function() {
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
+        toggleRecurringFields();
+        checkbox.addEventListener('change', toggleRecurringFields);
     });
-});
+    
+
+    // Handle Edit Budget Modal if exists
+    var editBudgetModal = document.getElementById('editBudgetModal');
+    if (editBudgetModal) {
+        editBudgetModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget; // Button that triggered the modal
+            var budgetId = button.getAttribute('data-id');
+            var categoryId = button.getAttribute('data-category');
+            var amount = button.getAttribute('data-amount');
+            var month = button.getAttribute('data-month');
+
+            // Get the form inside the modal
+            var form = editBudgetModal.querySelector('form');
+
+            // Set the form action to the appropriate route
+            form.action = '/edit_budget/' + budgetId;
+
+            // Set the form fields
+            form.querySelector('select[name="category"]').value = categoryId;
+            form.querySelector('input[name="amount"]').value = amount;
+            form.querySelector('input[name="month"]').value = month;
+        });
+    }

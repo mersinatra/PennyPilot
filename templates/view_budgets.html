@@ -1,10 +1,13 @@
-<!-- templates/view_budgets.html -->
 {% extends "base.html" %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="fw-bold">Budgets for {{ month }}</h2>
-    <a href="{{ url_for('add_budget') }}" class="btn btn-success">Add Budget</a>
+    <!-- Button to Open Add Budget Modal -->
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBudgetModal">
+        Add Budget
+    </button>
 </div>
+
 {% if budgets %}
     <div class="table-responsive">
         <table class="table table-hover align-middle">
@@ -34,10 +37,21 @@
                         <small>{{ "%.2f"|format(percentage) }}%</small>
                     </td>
                     <td>
-                        <a href="{{ url_for('edit_budget', budget_id=budget.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <!-- Button to Open Edit Budget Modal -->
+                        <button type="button" class="btn btn-sm btn-outline-primary edit-budget-btn" 
+                                data-bs-toggle="modal" data-bs-target="#editBudgetModal"
+                                data-id="{{ budget.id }}"
+                                data-category="{{ budget.category_id }}"
+                                data-amount="{{ budget.amount }}"
+                                data-month="{{ budget.month }}">
+                            Edit
+                        </button>
                         <form action="{{ url_for('delete_budget', budget_id=budget.id) }}" method="POST" class="d-inline" onsubmit="return confirmDelete();">
-                            <button type="submit" class="btn btn-primary btn-custom">Delete</button>
-                        </form>
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="fas fa-trash-alt"></i> Delete
+                            </button>
+                        </form>                        
                     </td>
                 </tr>
                 {% endfor %}
@@ -46,7 +60,93 @@
     </div>
 {% else %}
     <div class="alert alert-info">
-        No budgets found for this month. <a href="{{ url_for('add_budget') }}" class="alert-link">Add a new budget</a>.
+        No budgets found for this month. <a href="#" class="alert-link" data-bs-toggle="modal" data-bs-target="#addBudgetModal">Add a new budget</a>.
     </div>
 {% endif %}
+
+<!-- Add Budget Modal -->
+<div class="modal fade" id="addBudgetModal" tabindex="-1" aria-labelledby="addBudgetModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="addBudgetModalLabel">Add New Budget</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="POST" action="{{ url_for('add_budget') }}">
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+                {{ form.category.label(class="form-label fw-bold") }}
+                {{ form.category(class="form-select") }}
+                {% for error in form.category.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ form.amount.label(class="form-label fw-bold") }}
+                {{ form.amount(class="form-control", placeholder="Enter budget amount") }}
+                {% for error in form.amount.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ form.month.label(class="form-label fw-bold") }}
+                {{ form.month(class="form-control", placeholder="YYYY-MM") }}
+                {% for error in form.month.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+                <div class="form-text">Format: <strong>YYYY-MM</strong></div>
+            </div>
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg">{{ form.submit.label.text }}</button>
+            </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Budget Modal -->
+<div class="modal fade" id="editBudgetModal" tabindex="-1" aria-labelledby="editBudgetModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="editBudgetModalLabel">Edit Budget</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editBudgetForm" method="POST" action="">
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+                {{ form.category.label(class="form-label fw-bold") }}
+                {{ form.category(class="form-select") }}
+                {% for error in form.category.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ form.amount.label(class="form-label fw-bold") }}
+                {{ form.amount(class="form-control", placeholder="Enter budget amount") }}
+                {% for error in form.amount.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ form.month.label(class="form-label fw-bold") }}
+                {{ form.month(class="form-control", placeholder="YYYY-MM") }}
+                {% for error in form.month.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+                <div class="form-text">Format: <strong>YYYY-MM</strong></div>
+            </div>
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg">{{ form.submit.label.text }}</button>
+                <button type="button" class="btn btn-secondary btn-lg mt-2" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}

@@ -1,8 +1,10 @@
-<!-- templates/dashboard.html -->
 {% extends "base.html" %}
+
 {% block content %}
+
 <h1 class="mb-4">Dashboard</h1>
-<div class="row">
+
+<div class="row mb-4">
     <div class="col-md-4">
         <div class="card text-white bg-success mb-3">
             <div class="card-header">Total Income</div>
@@ -29,93 +31,114 @@
     </div>
 </div>
 
-<h2>Expenses by Category</h2>
-<canvas id="expenseChart" width="400" height="200"></canvas>
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Expenses by Category</h5>
+            </div>
+            <div class="card-body chart-container">
+                <canvas id="expensesChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Upcoming Recurring Transactions</h5>
+            </div>
+            <div class="card-body">
+                <div id="calendar"></div>
+            </div>
+        </div>
+    </div>
+</div>
 
-<script>
-    var ctx = document.getElementById('expenseChart').getContext('2d');
-    var expenseData = {
-        labels: {{ categories | tojson }},
-        datasets: [{
-            label: 'Expenses by Category',
-            data: {{ amounts | tojson }},
-            backgroundColor: [
-                'rgba(255, 99, 132, 0.2)',
-                'rgba(54, 162, 235, 0.2)',
-                'rgba(255, 206, 86, 0.2)',
-                // Add more colors as needed
-            ],
-            borderColor: [
-                'rgba(255,99,132,1)',
-                'rgba(54, 162, 235, 1)',
-                'rgba(255, 206, 86, 1)',
-                // Add more colors as needed
-            ],
-            borderWidth: 1
-        }]
-    };
-    var expenseChart = new Chart(ctx, {
-        type: 'pie',
-        data: expenseData,
-    });
-</script>
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Recent Transactions</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Amount ($)</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for txn in recent_transactions %}
+                    <tr>
+                        <td>{{ txn.date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ txn.description }}</td>
+                        <td>{{ txn.category.name }}</td>
+                        <td>{{ "%.2f"|format(txn.amount) }}</td>
+                        <td>
+                            <a href="{{ url_for('edit_transaction', transaction_id=txn.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                            <form action="{{ url_for('delete_transaction', transaction_id=txn.id) }}" method="post" style="display:inline;">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirmDelete()">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div> 
+</div>
 
-<hr>
+{% endblock %}
 
-<h2>Upcoming Recurring Transactions</h2>
-<div id='calendar'></div>
-
-<script>
+{% block scripts %}
+    {{ super() }}
+    <script>
     document.addEventListener('DOMContentLoaded', function() {
-        var calendarEl = document.getElementById('calendar');
-
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            height: 650,
-            events: {{ calendar_events | tojson }},
-            eventDidMount: function(info) {
-                // Optional: Add tooltip or other enhancements
-                var tooltip = new bootstrap.Tooltip(info.el, {
-                    title: info.event.extendedProps.category,
-                    placement: 'top',
-                    trigger: 'hover',
-                    container: 'body'
-                });
+        // Expenses Chart
+        var ctx = document.getElementById('expensesChart').getContext('2d');
+        var expensesChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: {{ categories|tojson }},
+                datasets: [{
+                    data: {{ amounts|tojson }},
+                    backgroundColor: [
+                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
             }
         });
 
+        // Calendar for Recurring Transactions
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            events: {{ calendar_events|tojson }},
+            themeSystem: 'bootstrap5',
+            height: '300px', // Set fixed height
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            buttonText: {
+                today: 'Today',
+                month: 'Month',
+                week: 'Week',
+                day: 'Day'
+            },
+            // Customize event appearance
+            eventColor: '#0071e3',
+            eventTextColor: '#fff'
+        });
         calendar.render();
     });
-</script>
-
-<h2 class="mt-5">Recent Transactions</h2>
-<!-- Existing recent transactions table or content -->
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Date</th>
-            <th>Description</th>
-            <th>Category</th>
-            <th>Amount ($)</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for txn in recent_transactions %}
-        <tr>
-            <td>{{ txn.date.strftime('%Y-%m-%d') }}</td>
-            <td>{{ txn.description }}</td>
-            <td>{{ txn.category.name }}</td>
-            <td>{{ "%.2f"|format(txn.amount) }}</td>
-            <td>
-                <a href="{{ url_for('edit_transaction', transaction_id=txn.id) }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i> Edit</a>
-                <form action="{{ url_for('delete_transaction', transaction_id=txn.id) }}" method="POST" class="d-inline" onsubmit="return confirmDelete();">
-                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash-alt"></i> Delete</button>
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
+    </script>
 {% endblock %}

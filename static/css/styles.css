@@ -1,88 +1,174 @@
-/* static/css/styles.css */
+/* CSS Variables for Theming */
+:root {
+    --bg-color: #f5f5f7;
+    --text-color: #333;
+    --card-bg: #fff;
+    --nav-bg: #fff;
+    --primary-color: #0071e3;
+    --primary-hover: #005bb5;
+    --success-color: #28a745;
+    --success-hover: #1e7e34;
+    --danger-color: #dc3545;
+    --danger-hover: #a8a8a8;
+    --border-color: #ccc;
+}
+
+body.dark-theme {
+    --bg-color: #1c1c1e;
+    --text-color: #f5f5f7;
+    --card-bg: #2c2c2e;
+    --nav-bg: #2c2c2e;
+    --primary-color: #005bb5;
+    --primary-hover: #003f7d;
+    --success-color: #1e7e34;
+    --success-hover: #155d27;
+    --danger-color: #a8a8a8;
+    --danger-hover: #7a7a7a;
+    --border-color: #555;
+}
 
 /* Global Styles */
 body {
     font-family: 'Roboto', sans-serif;
-    background-color: #f5f5f7;
-    color: #333;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin-top: 70px; /* To accommodate fixed navbar */
+    transition: background-color 0.3s, color 0.3s;
 }
 
 h1, h2, h3, h4, h5, h6 {
-    color: #1c1c1e;
+    color: var(--text-color);
 }
 
 a {
     text-decoration: none;
+    color: var(--primary-color);
+    transition: color 0.3s;
 }
 
 a:hover {
     text-decoration: underline;
 }
 
+/* Button Styles */
+
 .btn-primary {
-    background-color: #0071e3;
-    border-color: #0071e3;
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    transition: background-color 0.3s, border-color 0.3s;
 }
 
 .btn-primary:hover {
-    background-color: #005bb5;
-    border-color: #005bb5;
+    background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
 }
 
 .btn-success {
-    background-color: #28a745;
-    border-color: #28a745;
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+    transition: background-color 0.3s, border-color 0.3s;
 }
 
 .btn-success:hover {
-    background-color: #1e7e34;
-    border-color: #1c7430;
+    background-color: var(--success-hover);
+    border-color: var(--success-hover);
 }
 
 .btn-outline-primary {
-    color: #0071e3;
-    border-color: #0071e3;
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
 }
 
 .btn-outline-primary:hover {
-    background-color: #0071e3;
+    background-color: var(--primary-color);
     color: #fff;
 }
 
 .btn-outline-danger {
-    color: #dc3545;
-    border-color: #dc3545;
+    color: var(--danger-color);
+    border-color: var(--danger-color);
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
 }
 
 .btn-outline-danger:hover {
-    background-color: #dc3545;
+    background-color: var(--danger-color);
     color: #fff;
 }
 
+.btn-custom {
+    border-radius: 50px;
+    padding: 10px 20px;
+}
+
+/* Card Styles */
 .card {
+    background-color: var(--card-bg);
     border: none;
     border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s, box-shadow 0.3s, transform 0.3s;
 }
 
-.form-control {
-    border-radius: 8px;
-    border: 1px solid #ccc;
+/* Hover Effect for Cards */
+.card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+/* Navbar Styles */
+.navbar {
+    background-color: var(--nav-bg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.nav-link.active {
+    font-weight: 600;
+    color: var(--primary-color) !important;
+}
+
+.navbar-brand {
+    color: var(--text-color) !important;
+    transition: color 0.3s;
+}
+
+/* Form Controls */
+.form-control,
 .form-select {
     border-radius: 8px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-color);
+    transition: border-color 0.3s, box-shadow 0.3s;
 }
 
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(0, 113, 227, 0.25);
+}
+
+/* Table Styles */
 .table thead th {
     font-weight: 600;
     color: #555;
 }
 
+.table tbody tr:nth-child(even) {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.table-striped tbody tr:nth-child(odd) {
+    background-color: rgba(0, 0, 0, 0.01);
+}
+
+/* Progress Bar */
 .progress-bar {
     transition: width 0.6s ease;
 }
 
+/* Alert Styles */
 .alert {
     border-radius: 8px;
 }
@@ -106,15 +192,173 @@ a:hover {
     background: #a8a8a8;
 }
 
-/* Custom Button Styles */
-.btn-custom {
-    border-radius: 50px;
-    padding: 10px 20px;
+/* FullCalendar Styles Override */
+#calendar {
+    max-width: 100%;
+    margin: 0 auto;
+    height: 300px;
 }
 
-/* Custom Form Control Styles */
-.form-control-custom {
-    border-radius: 10px;
-    border: 1px solid #ced4da;
+.fc {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
+
+.fc-toolbar {
+    background-color: var(--nav-bg);
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 12px 12px 0 0;
+}
+
+.fc-button {
+    background-color: var(--primary-color);
+    border: none;
+    color: #fff;
+    border-radius: 4px;
+}
+
+.fc-button:hover {
+    background-color: var(--primary-hover);
+}
+
+.fc-daygrid-event {
+    background-color: var(--primary-color);
+    border: none;
+    border-radius: 4px;
+}
+
+.fc-daygrid-event:hover {
+    background-color: var(--primary-hover);
+}
+
+/* Chart.js Styles */
+.chart-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 330px;
+    width: 100%;
+}
+
+/* Responsive Layout Adjustments */
+@media (max-width: 1200px) {
+    .card-body {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .navbar-collapse {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        margin-top: 56px; /* Reduced top margin for mobile */
+    }
+
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .card-body {
+        padding: 1rem;
+    }
+
+    .navbar {
+        padding: 0.5rem 1rem;
+    }
+
+    .navbar-brand {
+        font-size: 1.2rem;
+        margin-right: 0;
+    }
+
+    .navbar-toggler {
+        padding: 0.25rem 0.5rem;
+        font-size: 1rem;
+    }
+
+    .nav-link {
+        padding: 0.5rem 0;
+    }
+
+    .table-responsive {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .form-control, .form-select {
+        margin-bottom: 1rem;
+    }
+
+    /* Added specific button styles excluding buttons within modals */
+    .btn-responsive {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Adjust chart container height on smaller screens */
+    .chart-container {
+        height: 250px;
+    }
+
+    #calendar {
+        height: 250px;
+    }
+}
+
+@media (max-width: 576px) {
+    body {
+        font-size: 14px;
+    }
+
+    h1 {
+        font-size: 1.8rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    .card {
+        margin-bottom: 1rem;
+    }
+
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+
+    .alert {
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .fc-toolbar-title {
+        font-size: 1.2rem !important;
+    }
+
+    .fc-button {
+        padding: 0.2rem 0.5rem !important;
+        font-size: 0.8rem !important;
+    }
+}
+
+/* Dark mode toggle styles */
+#theme-toggle {
+    cursor: pointer;
+}
+
+.fas {
+    backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
 

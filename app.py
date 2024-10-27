@@ -246,7 +246,7 @@ def add_transaction():
                 category_id=form.category.data,
                 description=form.description.data,
                 amount=form.amount.data,
-                type=form.type.data,
+                type=form.type.data,  # Using 'type' as field name
                 recurring=form.recurring.data
             )
             db.session.add(transaction)
@@ -261,8 +261,10 @@ def add_transaction():
             flash('An error occurred while adding the transaction.', 'danger')
     else:
         logger.debug("Form validation failed for adding transaction.")
+        # Log the form errors for debugging
         for field, errors in form.errors.items():
             for error in errors:
+                logger.debug(f"Error in {getattr(form, field).label.text}: {error}")
                 flash(f"Error in {getattr(form, field).label.text}: {error}", 'danger')
     return redirect(url_for('view_transactions'))
 

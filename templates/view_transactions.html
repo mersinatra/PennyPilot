@@ -120,6 +120,27 @@
                     <div class="text-danger">{{ error }}</div>
                 {% endfor %}
             </div>
+            <div class="mb-3">
+                {{ form.type.label(class="form-label fw-bold") }}
+                {{ form.type(class="form-select") }}
+                {% for error in form.type.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="mb-3 recurring-fields">
+                {{ form.frequency.label(class="form-label fw-bold") }}
+                {{ form.frequency(class="form-select") }}
+                {% for error in form.frequency.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="mb-3 recurring-fields">
+                {{ form.next_date.label(class="form-label fw-bold") }}
+                {{ form.next_date(class="form-control", type="date") }}
+                {% for error in form.next_date.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
             <div class="d-grid">
                 <button type="submit" class="btn btn-primary btn-lg">{{ form.submit.label.text }}</button>
             </div>
@@ -175,6 +196,27 @@
                     <div class="text-danger">{{ error }}</div>
                 {% endfor %}
             </div>
+            <div class="mb-3">
+                {{ form.type.label(class="form-label fw-bold") }}
+                {{ form.type(class="form-select") }}
+                {% for error in form.type.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="mb-3 recurring-fields">
+                {{ form.frequency.label(class="form-label fw-bold") }}
+                {{ form.frequency(class="form-select") }}
+                {% for error in form.frequency.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="mb-3 recurring-fields">
+                {{ form.next_date.label(class="form-label fw-bold") }}
+                {{ form.next_date(class="form-control", type="date") }}
+                {% for error in form.next_date.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            </div>
             <div class="d-grid">
                 <button type="submit" class="btn btn-primary btn-lg">{{ form.submit.label.text }}</button>
                 <button type="button" class="btn btn-secondary btn-lg mt-2" data-bs-dismiss="modal">Cancel</button>
@@ -186,12 +228,55 @@
 </div>
 
 <script>
+    // JavaScript to toggle frequency and next_date fields for Add and Edit Transaction Modals
+    document.addEventListener('DOMContentLoaded', function () {
+        // Add Transaction Modal Elements
+        var addRecurringCheckbox = document.querySelector('#recurringCheck');
+        var addFrequencyField = document.querySelector('#addTransactionModal select[name="frequency"]');
+        var addNextDateField = document.querySelector('#addTransactionModal input[name="next_date"]');
+        var addRecurringFields = document.querySelectorAll('#addTransactionModal .recurring-fields');
+
+        function toggleAddRecurringFields() {
+            var isRecurring = addRecurringCheckbox.checked;
+            addFrequencyField.disabled = !isRecurring;
+            addNextDateField.disabled = !isRecurring;
+            addFrequencyField.parentElement.style.display = isRecurring ? 'block' : 'none';
+            addNextDateField.parentElement.style.display = isRecurring ? 'block' : 'none';
+        }
+
+        // Initial check on page load
+        toggleAddRecurringFields();
+
+        // Event listener for recurring checkbox in Add Transaction Modal
+        addRecurringCheckbox.addEventListener('change', toggleAddRecurringFields);
+
+        // Edit Transaction Modal Elements
+        var editRecurringCheckbox = document.querySelector('#editTransactionModal input[name="recurring"]');
+        var editFrequencyField = document.querySelector('#editTransactionModal select[name="frequency"]');
+        var editNextDateField = document.querySelector('#editTransactionModal input[name="next_date"]');
+        var editRecurringFields = document.querySelectorAll('#editTransactionModal .recurring-fields');
+
+        function toggleEditRecurringFields() {
+            var isRecurring = editRecurringCheckbox.checked;
+            editFrequencyField.disabled = !isRecurring;
+            editNextDateField.disabled = !isRecurring;
+            editFrequencyField.parentElement.style.display = isRecurring ? 'block' : 'none';
+            editNextDateField.parentElement.style.display = isRecurring ? 'block' : 'none';
+        }
+
+        // Initial check when edit modal is shown
+        toggleEditRecurringFields();
+
+        // Event listener for recurring checkbox in Edit Transaction Modal
+        editRecurringCheckbox.addEventListener('change', toggleEditRecurringFields);
+    });
+
     // Function to confirm deletion
     function confirmDelete() {
         return confirm('Are you sure you want to delete this transaction? This action cannot be undone.');
     }
 
-    // Handle Edit Transaction Modal
+    // Handle Edit Transaction Modal Population
     var editTransactionModal = document.getElementById('editTransactionModal');
     editTransactionModal.addEventListener('show.bs.modal', function (event) {
         var button = event.relatedTarget;
@@ -200,7 +285,7 @@
         var category = button.getAttribute('data-category');
         var description = button.getAttribute('data-description');
         var amount = button.getAttribute('data-amount');
-        var type = button.getAttribute('data-type');
+        var type = button.getAttribute('data-type');  // 'Income' or 'Expense'
         var recurring = button.getAttribute('data-recurring') === 'true';
 
         // Update the form action
@@ -212,8 +297,24 @@
         form.querySelector('select[name="category"]').value = category;
         form.querySelector('input[name="description"]').value = description;
         form.querySelector('input[name="amount"]').value = amount;
-        form.querySelector('select[name="type"]').value = type;
+        form.querySelector('select[name="type"]').value = type;  // 'type' field
         form.querySelector('input[name="recurring"]').checked = recurring;
+
+        // Toggle recurring fields based on the recurring checkbox
+        var editFrequencyField = form.querySelector('select[name="frequency"]');
+        var editNextDateField = form.querySelector('input[name="next_date"]');
+
+        if (recurring) {
+            editFrequencyField.parentElement.style.display = 'block';
+            editNextDateField.parentElement.style.display = 'block';
+            editFrequencyField.disabled = false;
+            editNextDateField.disabled = false;
+        } else {
+            editFrequencyField.parentElement.style.display = 'none';
+            editNextDateField.parentElement.style.display = 'none';
+            editFrequencyField.disabled = true;
+            editNextDateField.disabled = true;
+        }
     });
 </script>
 

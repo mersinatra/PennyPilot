@@ -12,22 +12,50 @@ from datetime import datetime
 from werkzeug.utils import secure_filename
 
 class TransactionForm(FlaskForm):
-    amount = FloatField('Amount', validators=[DataRequired(), NumberRange(min=0.01, message="Amount must be greater than zero.")])
-    date = DateField('Date', format='%Y-%m-%d', validators=[DataRequired()])
-    description = StringField('Description', validators=[Length(max=200, message="Description cannot exceed 200 characters.")])
-    category = SelectField('Category', coerce=int, validators=[DataRequired()])
+    amount = FloatField(
+        'Amount', 
+        validators=[DataRequired(), NumberRange(min=0.01, message="Amount must be greater than zero.")]
+    )
+    date = DateField(
+        'Date', 
+        format='%Y-%m-%d', 
+        validators=[DataRequired()]
+    )
+    description = StringField(
+        'Description', 
+        validators=[Length(max=200, message="Description cannot exceed 200 characters.")]
+    )
+    category = SelectField(
+        'Category', 
+        coerce=int, 
+        validators=[DataRequired()]
+    )
     recurring = BooleanField('Recurring')
-    frequency = SelectField('Frequency', choices=[
+    type = SelectField(
+        'Type', 
+        choices=[('Income', 'Income'), ('Expense', 'Expense')], 
+        validators=[DataRequired()]
+    )
+    frequency = SelectField(
+        'Frequency', 
+        choices=[
             ('', 'Select Frequency'),
             ('Daily', 'Daily'),
             ('Weekly', 'Weekly'),
             ('Monthly', 'Monthly')
-        ], validators=[Optional()])
-    next_date = DateField('Next Date', format='%Y-%m-%d', validators=[Optional()])
+        ], 
+        validators=[Optional()]
+    )
+    next_date = DateField(
+        'Next Date', 
+        format='%Y-%m-%d', 
+        validators=[Optional()]
+    )
     submit = SubmitField('Save Transaction')
 
     def __init__(self, *args, **kwargs):
         super(TransactionForm, self).__init__(*args, **kwargs)
+        # Populate category choices dynamically from the database
         self.category.choices = [
             (c.id, c.name) for c in Category.query.order_by('name')
         ]
@@ -37,15 +65,17 @@ class TransactionForm(FlaskForm):
             raise ValidationError("Date cannot be in the future.")
 
     def validate_next_date(self, field):
-        if self.is_recurring.data and field.data:
+        if self.recurring.data and field.data:
             if field.data <= self.date.data:
                 raise ValidationError("Next date must be after the transaction date.")
 
     def validate(self, *args, **kwargs):
+        # Perform the default validation
         rv = super(TransactionForm, self).validate(*args, **kwargs)
         if not rv:
             return False
 
+        # Additional validation for recurring transactions
         if self.recurring.data:
             if not self.frequency.data or self.frequency.data not in ['Daily', 'Weekly', 'Monthly']:
                 self.frequency.errors.append('Please select a valid frequency.')

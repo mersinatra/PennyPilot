@@ -24,12 +24,13 @@ PennyPilot is a personal finance management desktop application designed to help
   
 - **Recurring Transactions:** 
   - Automatically manage recurring transactions with support for daily, weekly, and monthly frequencies.
+  - Simplifies your personal finances, can be used for Income, Subscriptions or other frequent payments.
   
 - **Budget Tracking:** 
-  - Create and track budgets for different categories, and receive visual alerts when approaching or exceeding budget limits.
+  - Create and track budgets for different categories, and receive alerts when approaching or exceeding budget limits.
   
 - **Dashboard Overview:** 
-  - Get a quick glance at total income, expenses, and current balance, as well as a calendar view of recurring transactions, a pie chart of expenses by category, and a table of recent transactions.
+  - Get a quick glance at total income, expenses, and current balance, as well as a calendar view of recurring transactions, a pie chart of expenses by category, and a table of recent transactions/upcoming transactions.
   
 - **Data Import/Export:** 
   - Import transaction data from CSV or JSON files and *export your data for backup or analysis.
@@ -158,7 +159,6 @@ penny_pilot/
 
 ## **Screenshots**
 
-_Include screenshots of the UI to showcase the application layout and features._
 
 - **Dashboard View**
   

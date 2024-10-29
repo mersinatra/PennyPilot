@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="fw-bold">Savings Accounts</h1>
+<button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#addSavingsAccountModal">
+    Add New Savings Account
+</button>
+
+<!-- Add Savings Account Modal -->
+<div class="modal fade" id="addSavingsAccountModal" tabindex="-1" aria-labelledby="addSavingsAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="addSavingsAccountModalLabel">Add New Savings Account</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('savings') }}">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.account_name.label }}<br>
+                        {{ form.account_name(class='form-control', placeholder='Account Name') }}
+                        {% for error in form.account_name.errors %}
+                            <span style="color: red;">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.balance.label }}<br>
+                        {{ form.balance(class='form-control', placeholder='Initial Balance') }}
+                        {% for error in form.balance.errors %}
+                            <span style="color: red;">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-dark btn-lg">{{ form.submit.label.text }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="row">
+    {% for account in savings_accounts %}
+        <div class="col-md-4 mb-3">  <!-- Adjust the column size as needed -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ account.account_name }}</h5>
+                    <p class="card-text">Balance: ${{ account.balance }}</p>
+                    <div class="d-flex justify-content-between">
+                        <form method="POST" action="{{ url_for('edit_savings', account_id=account.id) }}" style="display:inline;">
+                            <button type="button" class="btn btn-outline-primary btn-sm">Edit</button>
+                        </form>
+                        <form method="POST" action="{{ url_for('delete_savings', account_id=account.id) }}" style="display:inline;">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

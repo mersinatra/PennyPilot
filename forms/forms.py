@@ -60,10 +60,6 @@ class TransactionForm(FlaskForm):
             (c.id, c.name) for c in Category.query.order_by('name')
         ]
 
-    def validate_date(self, field):
-        if field.data > datetime.utcnow().date():
-            raise ValidationError("Date cannot be in the future.")
-
     def validate_next_date(self, field):
         if self.recurring.data and field.data:
             if field.data <= self.date.data:
@@ -113,3 +109,16 @@ class ImportForm(FlaskForm):
             filename = secure_filename(field.data.filename)
             if not (filename.endswith('.csv') or filename.endswith('.json')):
                 raise ValidationError('Unsupported file format! Please upload a CSV or JSON file.')
+            
+
+class SavingsForm(FlaskForm):
+    account_name = StringField(
+        'Account Name',
+        validators=[DataRequired(), Length(max=100, message="Account name cannot exceed 100 characters.")]
+    )
+    balance = DecimalField(
+        'Initial Balance',
+        validators=[DataRequired(), NumberRange(min=0.0, message="Balance must be non-negative.")]
+    )
+    submit = SubmitField('Add Savings Account')
+

@@ -2,7 +2,9 @@
 
 {% block content %}
 
-<h1 class="mb-4">Dashboard</h1>
+{% set today = today or None %}
+
+<h1 class="header-spacing fw-bold">Dashboard</h1>
 
 <div class="row mb-4">
     <div class="col-md-4">
@@ -33,10 +35,14 @@
 
 <div class="card mt-4">
     <div class="card-header">
-        <h5 class="card-title mb-0">Recent Transactions</h5>
+        <h5 class="card-title mb-0">Transactions</h5>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-secondary active" id="recentTransactionsBtn">Recent Transactions</button>
+            <button type="button" class="btn btn-outline-secondary" id="upcomingTransactionsBtn">Upcoming Transactions</button>
+        </div>
     </div>
     <div class="card-body">
-        <div class="table-responsive">
+        <div class="table-responsive" id="recentTransactions">
             <table class="table table-striped">
                 <thead>
                     <tr>
@@ -53,7 +59,51 @@
                         <td>{{ txn.date.strftime('%Y-%m-%d') }}</td>
                         <td>{{ txn.description }}</td>
                         <td>{{ txn.category.name }}</td>
-                        <td>{{ "%.2f"|format(txn.amount) }}</td>
+                        <td>
+                            {% if txn.category.type == 'Income' %}
+                                <span class="text-success">+{{ "%.2f"|format(txn.amount) }}</span>
+                            {% else %}
+                                <span class="text-danger">-{{ "%.2f"|format(txn.amount) }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('edit_transaction', transaction_id=txn.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                            <form action="{{ url_for('delete_transaction', transaction_id=txn.id) }}" method="post" style="display:inline;">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirmDelete()">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="table-responsive" id="upcomingTransactions" style="display:none;">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Amount ($)</th>
+                        <th>Type</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for txn in upcoming_transactions %}
+                    <tr>
+                        <td>{{ txn.date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ txn.description }}</td>
+                        <td>{{ txn.category.name }}</td>
+                        <td>
+                            {% if txn.category.type == 'Income' %}
+                                <span class="text-success">+{{ "%.2f"|format(txn.amount) }}</span>
+                            {% else %}
+                                <span class="text-danger">-{{ "%.2f"|format(txn.amount) }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ txn.category.type }}</td>
                         <td>
                             <a href="{{ url_for('edit_transaction', transaction_id=txn.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
                             <form action="{{ url_for('delete_transaction', transaction_id=txn.id) }}" method="post" style="display:inline;">
@@ -82,7 +132,7 @@
     <div class="col-md-6">
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="card-title mb-0">Upcoming Recurring Transactions</h5>
+                <h5 class="card-title mb-0">Recurring Transactions</h5>
             </div>
             <div class="card-body">
                 <div id="calendar"></div>
@@ -139,6 +189,26 @@
             eventTextColor: '#fff'
         });
         calendar.render();
+
+        // Toggle between Recent and Upcoming Transactions
+        const recentBtn = document.getElementById('recentTransactionsBtn');
+        const upcomingBtn = document.getElementById('upcomingTransactionsBtn');
+        const recentTransactions = document.getElementById('recentTransactions');
+        const upcomingTransactions = document.getElementById('upcomingTransactions');
+
+        recentBtn.addEventListener('click', function() {
+            recentTransactions.style.display = 'table';
+            upcomingTransactions.style.display = 'none';
+            recentBtn.classList.add('active');
+            upcomingBtn.classList.remove('active');
+        });
+
+        upcomingBtn.addEventListener('click', function() {
+            recentTransactions.style.display = 'none';
+            upcomingTransactions.style.display = 'table';
+            upcomingBtn.classList.add('active');
+            recentBtn.classList.remove('active');
+        });
     });
     </script>
 {% endblock %}

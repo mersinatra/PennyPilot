@@ -3,60 +3,53 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="fw-bold">Budgets for {{ month }}</h2>
     <!-- Button to Open Add Budget Modal -->
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBudgetModal">
+    <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#addBudgetModal">
         Add Budget
     </button>
 </div>
 
 {% if budgets %}
-    <div class="table-responsive">
-        <table class="table table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>Category</th>
-                    <th>Budgeted Amount</th>
-                    <th>Spent</th>
-                    <th>Remaining</th>
-                    <th>Progress</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for budget in budgets %}
-                <tr>
-                    <td>{{ budget.category }}</td>
-                    <td>${{ "%.2f"|format(budget.budget) }}</td>
-                    <td>${{ "%.2f"|format(budget.spent) }}</td>
-                    <td>${{ "%.2f"|format(budget.remaining) }}</td>
-                    <td>
+    <div class="row">
+        {% for budget in budgets %}
+            <div class="col-md-4 mb-3">  <!-- Adjust the column size as needed -->
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ budget.category }}</h5>
+                        <p class="card-text">
+                            <strong>Budgeted Amount:</strong> ${{ "%.2f"|format(budget.budget) }}<br>
+                            <strong>Spent:</strong> ${{ "%.2f"|format(budget.spent) }}<br>
+                            <strong>Remaining:</strong> ${{ "%.2f"|format(budget.remaining) }}
+                        </p>
                         {% set percentage = (budget.spent / budget.budget * 100) if budget.budget > 0 else 0 %}
                         <div class="progress" style="height: 8px;">
-                            <div class="progress-bar {% if percentage > 100 %}bg-danger{% elif percentage > 75 %}bg-warning{% else %}bg-success{% endif %}" role="progressbar" 
-                                style="width: {{ percentage }}%;" aria-valuenow="{{ percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                            <div class="progress-bar {% if percentage > 100 %}bg-danger{% elif percentage > 75 %}bg-warning{% else %}bg-success{% endif %}" 
+                                 role="progressbar" 
+                                 style="width: {{ percentage }}%;" 
+                                 aria-valuenow="{{ percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
-                        <small>{{ "%.2f"|format(percentage) }}%</small>
-                    </td>
-                    <td>
-                        <!-- Button to Open Edit Budget Modal -->
-                        <button type="button" class="btn btn-sm btn-outline-primary edit-budget-btn" 
-                                data-bs-toggle="modal" data-bs-target="#editBudgetModal"
-                                data-id="{{ budget.id }}"
-                                data-category="{{ budget.category_id }}"
-                                data-amount="{{ budget.amount }}"
-                                data-month="{{ budget.month }}">
-                            Edit
-                        </button>
-                        <form action="{{ url_for('delete_budget', budget_id=budget.id) }}" method="POST" class="d-inline" onsubmit="return confirmDelete();">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                            <button type="submit" class="btn btn-sm btn-outline-danger">
-                                <i class="fas fa-trash-alt"></i> Delete
+                        <small>{{ "%.2f"|format(percentage) }}% Progress</small>
+
+                        <div class="d-flex justify-content-between mt-3">
+                            <!-- Button to Open Edit Budget Modal -->
+                            <button type="button" class="btn btn-outline-primary btn-sm edit-budget-btn" 
+                                    data-bs-toggle="modal" data-bs-target="#editBudgetModal"
+                                    data-id="{{ budget.id }}"
+                                    data-category="{{ budget.category_id }}"
+                                    data-amount="{{ budget.amount }}"
+                                    data-month="{{ budget.month }}">
+                                Edit
                             </button>
-                        </form>                        
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                            <form action="{{ url_for('delete_budget', budget_id=budget.id) }}" method="POST" class="d-inline" onsubmit="return confirmDelete();">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-trash-alt"></i> Delete
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
     </div>
 {% else %}
     <div class="alert alert-info">
@@ -98,7 +91,7 @@
                 <div class="form-text">Format: <strong>YYYY-MM</strong></div>
             </div>
             <div class="d-grid">
-                <button type="submit" class="btn btn-primary btn-lg">{{ form.submit.label.text }}</button>
+                <button type="submit" class="btn btn-dark btn-lg">{{ form.submit.label.text }}</button>
             </div>
         </form>
       </div>
@@ -140,7 +133,7 @@
                 <div class="form-text">Format: <strong>YYYY-MM</strong></div>
             </div>
             <div class="d-grid">
-                <button type="submit" class="btn btn-primary btn-lg">{{ form.submit.label.text }}</button>
+                <button type="submit" class="btn btn-dark btn-lg">{{ form.submit.label.text }}</button>
                 <button type="button" class="btn btn-secondary btn-lg mt-2" data-bs-dismiss="modal">Cancel</button>
             </div>
         </form>

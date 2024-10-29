@@ -1,5 +1,3 @@
-    
- 
     // Additional Toggle for All Modals (Optional)
     var recurringCheckboxes = document.querySelectorAll('.is-recurring-checkbox');
     recurringCheckboxes.forEach(function(checkbox) {

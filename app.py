@@ -6,12 +6,14 @@ from flask import (Flask, render_template, redirect, url_for, flash, request, se
 from flask_wtf import CSRFProtect
 from flask_wtf.csrf import generate_csrf
 from config import Config
-from models.models import db, Transaction, Category, Budget, RecurringTransaction
-from forms.forms import TransactionForm, BudgetForm, ImportForm
+from models.models import db, Transaction, Category, Budget, RecurringTransaction, SavingsAccount
+from forms.forms import TransactionForm, BudgetForm, ImportForm, SavingsForm
 from utils.helpers import process_recurring_transactions
 from datetime import datetime, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
-from sqlalchemy import extract
+from sqlalchemy import Column, String, Float, DateTime, extract
+from decimal import Decimal
+from collections import defaultdict
 import os
 import csv
 import json
@@ -118,59 +120,150 @@ def inject_csrf_token():
 def dashboard():
     logger.debug("Accessed dashboard route.")
     try:
-        # Removed: process_recurring_transactions()
-        logger.debug("Skipped processing recurring transactions here.")
+        # Process recurring transactions
+        process_recurring_transactions()
+        logger.debug("Processed recurring transactions.")
 
-        # Fetch total income and expenses
+        # Get today's date
+        today = datetime.today().date()
+
+        # Fetch total income and expenses up to today
         total_income = db.session.query(
             db.func.sum(Transaction.amount)
-        ).join(Category).filter(Category.type == 'Income').scalar() or 0
+        ).join(Category).filter(
+            Category.type == 'Income',
+            Transaction.date <= today  # Exclude future transactions
+        ).scalar() or 0
+
         total_expense = db.session.query(
             db.func.sum(Transaction.amount)
-        ).join(Category).filter(Category.type == 'Expense').scalar() or 0
+        ).join(Category).filter(
+            Category.type == 'Expense',
+            Transaction.date <= today  # Exclude future transactions
+        ).scalar() or 0
+
         balance = total_income - total_expense
         logger.debug(f"Total income: {total_income}, Total expense: {total_expense}, Balance: {balance}")
 
-        # Fetch expenses by category for visualization
+        # Calculate Savings Rate
+        if total_income > 0:
+            savings_rate = ((total_income - total_expense) / total_income) * 100
+        else:
+            savings_rate = 0
+        logger.debug(f"Savings rate: {savings_rate}%")
+
+        # Fetch expenses by category up to today for visualization
         expenses = db.session.query(
             Category.name,
             db.func.sum(Transaction.amount)
         ).join(Transaction).filter(
-            Category.type == 'Expense'
+            Category.type == 'Expense',
+            Transaction.date <= today  # Exclude future transactions
         ).group_by(Category.name).all()
+
         categories = [e[0] for e in expenses]
         amounts = [e[1] for e in expenses]
         logger.debug(f"Expenses by category: {dict(zip(categories, amounts))}")
 
-        # Fetch recent transactions
-        recent_transactions = Transaction.query.order_by(Transaction.date.desc()).limit(5).all()
+        # Fetch recent transactions up to today
+        recent_transactions = Transaction.query.filter(Transaction.date <= today)\
+            .order_by(Transaction.date.desc()).limit(5).all()
         logger.debug(f"Fetched {len(recent_transactions)} recent transactions.")
 
-        # Fetch recurring transactions
+        # Fetch recurring transactions for calendar events
         recurring_transactions = RecurringTransaction.query.all()
         calendar_events = []
         for rt in recurring_transactions:
-            event = {
-                'title': f"{rt.description} - ${rt.amount}",
-                'start': rt.next_date.strftime('%Y-%m-%d'),
-                'allDay': True
-            }
-            calendar_events.append(event) 
-        logger.debug(f"Fetched {len(recurring_transactions)} recurring transactions for calendar events.")
+            if hasattr(rt, 'description') and hasattr(rt, 'amount') and hasattr(rt, 'next_date'):
+                event = {
+                    'title': f"{rt.description} - ${rt.amount}",
+                    'start': rt.next_date.strftime('%Y-%m-%d'),
+                    'allDay': True
+                }
+                calendar_events.append(event) 
+        logger.debug(f"Fetched {len(calendar_events)} recurring transactions for calendar events.")
 
-        # Prepare data for the expenses chart
-        categories = [category for category, amount in expenses]
-        amounts = [amount for category, amount in expenses]
+        # Fetch upcoming transactions (future-dated)
+        upcoming_transactions = Transaction.query.filter(Transaction.date > today)\
+            .order_by(Transaction.date.asc()).limit(5).all()
+        logger.debug(f"Fetched {len(upcoming_transactions)} upcoming transactions.")
+
+        # Fetch income and expenses over time (monthly)
+        income_over_time = db.session.query(
+            extract('year', Transaction.date).label('year'),
+            extract('month', Transaction.date).label('month'),
+            db.func.sum(Transaction.amount).label('income')
+        ).join(Category).filter(
+            Category.type == 'Income',
+            Transaction.date <= today
+        ).group_by('year', 'month').order_by('year', 'month').all()
+
+        expenses_over_time = db.session.query(
+            extract('year', Transaction.date).label('year'),
+            extract('month', Transaction.date).label('month'),
+            db.func.sum(Transaction.amount).label('expense')
+        ).join(Category).filter(
+            Category.type == 'Expense',
+            Transaction.date <= today
+        ).group_by('year', 'month').order_by('year', 'month').all()
+
+        # Combine income and expenses by month
+        income_dict = defaultdict(float)
+        for record in income_over_time:
+            key = f"{int(record.year)}-{int(record.month):02d}"
+            income_dict[key] = float(record.income)
+
+        expenses_dict = defaultdict(float)
+        for record in expenses_over_time:
+            key = f"{int(record.year)}-{int(record.month):02d}"
+            expenses_dict[key] = float(record.expense)
+
+        # Create a sorted list of months
+        all_months = sorted(set(list(income_dict.keys()) + list(expenses_dict.keys())))
+
+        # Prepare data for the chart
+        income_data = [income_dict.get(month, 0) for month in all_months]
+        expense_data = [expenses_dict.get(month, 0) for month in all_months]
+
+        # Calculate Trend Indicators
+        def calculate_trend(current, previous):
+            if previous == 0:
+                return 0  # Avoid division by zero
+            return ((current - previous) / previous) * 100
+
+        if len(all_months) >= 2:
+            current_month = all_months[-1]
+            previous_month = all_months[-2]
+            current_income = income_dict.get(current_month, 0)
+            previous_income = income_dict.get(previous_month, 0)
+            income_trend = calculate_trend(current_income, previous_income)
+
+            current_expense = expenses_dict.get(current_month, 0)
+            previous_expense = expenses_dict.get(previous_month, 0)
+            expense_trend = calculate_trend(current_expense, previous_expense)
+        else:
+            income_trend = 0
+            expense_trend = 0
+
+        logger.debug(f"Income trend: {income_trend}%, Expense trend: {expense_trend}%")
 
         return render_template(
             'dashboard.html',
             total_income=total_income,
             total_expense=total_expense,
             balance=balance,
+            savings_rate=savings_rate,
             categories=categories,
             amounts=amounts,
             recent_transactions=recent_transactions,
-            calendar_events=calendar_events
+            calendar_events=calendar_events,
+            upcoming_transactions=upcoming_transactions,
+            today=today,
+            all_months=all_months,
+            income_data=income_data,
+            expense_data=expense_data,
+            income_trend=income_trend,
+            expense_trend=expense_trend
         )
     except Exception as e:
         logger.error(f"Error in dashboard route: {e}")
@@ -186,19 +279,17 @@ def view_transactions():
     try:
         # Get the 'month' from query parameters, default to current month
         month_str = request.args.get('month', datetime.now().strftime('%Y-%m'))
+        
         # Validate 'month' format
         try:
             datetime.strptime(month_str, '%Y-%m')
-            month = month_str
+            year, month_num = map(int, month_str.split('-'))
         except ValueError:
             logger.warning(f"Invalid month format received: {month_str}")
             flash('Invalid month format. Please use YYYY-MM.', 'warning')
-            month = datetime.now().strftime('%Y-%m')
+            year, month_num = datetime.now().year, datetime.now().month
 
-        # Extract year and month for filtering
-        year, month_num = map(int, month.split('-'))
-
-        # Optimize queries to prevent N+1 problem
+        # Fetch transactions for the specified month
         transactions = Transaction.query.filter(
             extract('year', Transaction.date) == year,
             extract('month', Transaction.date) == month_num
@@ -215,9 +306,13 @@ def view_transactions():
                 'type': transaction.type,
                 'recurring': transaction.recurring
             })
-                
-            
-        logger.debug(f"Fetched {len(transaction_data)} transactions for month {month}.")
+
+        logger.debug(f"Fetched {len(transaction_data)} transactions for {month_str}.")
+
+        # Calculate previous and next month
+        month = datetime.strptime(month_str, '%Y-%m')
+        previous_month = (month.replace(day=1) - timedelta(days=1)).replace(day=1).strftime('%Y-%m')
+        next_month = (month.replace(day=1) + timedelta(days=31)).replace(day=1).strftime('%Y-%m')
 
         # Instantiate the TransactionForm to pass to the template
         form = TransactionForm()
@@ -225,8 +320,10 @@ def view_transactions():
         return render_template(
             'view_transactions.html',
             transactions=transaction_data,
-            month=month,
-            form=form  # Pass the form to the template
+            month=month_str,
+            previous_month=previous_month,
+            next_month=next_month,
+            form=form
         )
     except Exception as e:
         logger.error(f"Error in view_transactions route: {e}")
@@ -353,13 +450,13 @@ def view_budgets():
 
         budget_data = []
         for budget in budgets:
-            spent = spent_dict.get(budget.category_id, 0)
-            remaining = budget.amount - spent
-            percentage = (spent / budget.amount * 100) if budget.amount > 0 else 0
+            spent = spent_dict.get(budget.category_id, Decimal(0))  # Ensure spent is Decimal
+            remaining = Decimal(budget.amount) - spent  # Convert budget.amount to Decimal
+            percentage = (spent / Decimal(budget.amount) * 100) if budget.amount > 0 else 0  # Ensure consistent types
             budget_data.append({
                 'id': budget.id,
                 'category': budget.category.name,
-                'budget': budget.amount,
+                'budget': Decimal(budget.amount),  # Ensure budget is Decimal
                 'spent': spent,
                 'remaining': remaining,
                 'percentage': percentage,
@@ -472,6 +569,46 @@ def delete_budget(budget_id):
         flash('An error occurred while deleting the budget.', 'danger')
     return redirect(url_for('view_budgets'))
 
+# Savings Routes
+
+@app.route('/savings', methods=['GET', 'POST'])
+def savings():
+    form = SavingsForm()
+    
+    if form.validate_on_submit():
+        account_name = form.account_name.data
+        balance = form.balance.data
+        new_account = SavingsAccount(account_name=account_name, balance=balance)
+        db.session.add(new_account)
+        db.session.commit()
+        flash('Savings account added successfully!', 'success')
+        return redirect(url_for('savings'))
+
+    savings_accounts = SavingsAccount.query.all()
+    return render_template('savings.html', form=form, savings_accounts=savings_accounts)
+
+@app.route('/savings/edit/<int:account_id>', methods=['GET', 'POST'])
+def edit_savings(account_id):
+    account = SavingsAccount.query.get_or_404(account_id)
+    form = SavingsForm(obj=account)  # Pre-fill the form with the existing account data
+    
+    if form.validate_on_submit():
+        account.account_name = form.account_name.data
+        account.balance = form.balance.data
+        db.session.commit()
+        flash('Savings account updated successfully!', 'success')
+        return redirect(url_for('savings'))
+
+    return render_template('edit_savings.html', form=form, account=account)
+
+@app.route('/savings/delete/<int:account_id>', methods=['POST'])
+def delete_savings(account_id):
+    account = SavingsAccount.query.get_or_404(account_id)
+    db.session.delete(account)
+    db.session.commit()
+    flash('Savings account deleted successfully!', 'success')
+    return redirect(url_for('savings'))
+
 # Reports Routes
 
 @app.route('/reports', methods=['GET', 'POST'])
@@ -520,41 +657,6 @@ def reports():
             return redirect(url_for('reports'))
     return render_template('reports.html')
 
-@app.route('/category_trends')
-def category_trends():
-    logger.debug("Accessed category trends route.")
-    try:
-        # Analyze spending trends over time within each category
-        categories = Category.query.filter_by(type='Expense').all()
-        category_data = []
-
-        for category in categories:
-            logger.debug(f"Fetching transactions for category: {category.name}")
-            transactions = Transaction.query.filter_by(
-                category_id=category.id
-            ).order_by(Transaction.date).all()
-            
-            dates = [t.date.strftime('%Y-%m-%d') for t in transactions]
-            amounts = [t.amount for t in transactions]
-            
-            logger.info(
-                f"Category: {category.name} - Transactions: {len(transactions)} - Total Amount: {sum(amounts)}"
-            )
-
-            category_data.append({
-                'category': category.name,
-                'dates': dates,
-                'amounts': amounts
-            })
-        
-        logger.info("Category trends data prepared successfully.")
-        return render_template('category_trends.html', category_data=category_data)
-    
-    except Exception as e:
-        logger.error(f"Error accessing category trends: {e}")
-        logger.debug(traceback.format_exc())
-        flash('An error occurred while loading category trends.', 'danger')
-        return redirect(url_for('dashboard'))
 
 # -------------------- Data Export Routes -------------------- #
 

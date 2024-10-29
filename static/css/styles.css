@@ -38,6 +38,8 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
     color: var(--text-color);
+    text-align: center;
+    margin-bottom: 20px;
 }
 
 a {
@@ -110,14 +112,6 @@ a:hover {
     transition: background-color 0.3s, box-shadow 0.3s, transform 0.3s;
 }
 
-/* Hover Effect for Cards */
-.card:hover {
-    transform: scale(1.05);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-    z-index: 1;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
 /* Navbar Styles */
 .navbar {
     background-color: var(--nav-bg);
@@ -133,6 +127,7 @@ a:hover {
 .navbar-brand {
     color: var(--text-color) !important;
     transition: color 0.3s;
+    font-size: 2rem; /* Adjust the font size as needed */
 }
 
 /* Form Controls */
@@ -332,7 +327,7 @@ a:hover {
     }
 
     .navbar-brand {
-        font-size: 1.1rem;
+        font-size: 1.2rem;
     }
 
     .alert {
@@ -361,4 +356,16 @@ a:hover {
     -moz-osx-font-smoothing: grayscale;
 }
 
+/* Add this to your custom CSS file or within a <style> tag */
+.navbar {
+    padding: 15px; /* Increase the padding around the navbar */
+}
 
+.navbar-nav .nav-link {
+    font-size: 1.05rem; /* Increase the font size of navbar items */
+}
+
+/* styles.css or your CSS file */
+.header-spacing {
+    margin-bottom: 3rem; /* Adjust as needed */
+}

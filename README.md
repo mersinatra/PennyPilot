@@ -1,6 +1,6 @@
 # **PennyPilot - Personal Finance Management App**
 
-PennyPilot is a personal finance management desktop application designed to help users track their transactions, manage budgets, and monitor recurring expenses. With a sleek interface built using Python and PyQt, PennyPilot offers visual reports and tools to provide a comprehensive overview of your financial health.
+PennyPilot is a personal finance management desktop application designed to help users track their transactions, manage budgets, and monitor recurring expenses. With a sleek interface built using Flask (Python) and Bootstrap, PennyPilot offers visual reports and tools to provide a comprehensive overview of your financial health.
 
 ---
 
@@ -50,7 +50,6 @@ PennyPilot is a personal finance management desktop application designed to help
 ### **Prerequisites**
 
 - Python 3.x
-- requirements.txt contains the required Python libraries.
 
 
 ### **Steps:**
@@ -59,14 +58,21 @@ PennyPilot is a personal finance management desktop application designed to help
 
     
     git clone https://github.com/mersinatra/PennyPilot.git
+
+
     cd PennyPilot
+
+
     
 
 2. **Set Up a Virtual Environment:**
 
     
     python -m venv venv
-    source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+
+    source venv/bin/activate
+ # Windows: venv\Scripts\activate
     
 
 3. **Install Dependencies:**
@@ -159,6 +165,7 @@ penny_pilot/
 
 ## **Screenshots**
 
+_Include screenshots of the UI to showcase the application layout and features._
 
 - **Dashboard View**
   
